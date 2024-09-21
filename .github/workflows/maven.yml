@@ -56,25 +56,38 @@ jobs:
     - name: Test Application
       run: curl --fail http://localhost:8080/get-todo || exit 1
 
-    # Step 5: Install ngrok
-    - name: Download and Install ngrok
-      run: |
-        curl -s https://ngrok-agent.s3.amazonaws.com/ngrok.asc | sudo tee /etc/apt/trusted.gpg.d/ngrok.asc >/dev/null &&
-        echo "deb https://ngrok-agent.s3.amazonaws.com buster main" | sudo tee /etc/apt/sources.list.d/ngrok.list &&
-        sudo apt update && sudo apt install ngrok
+    # Step : expose tunnel
+    - name: Expose tunnel
+      uses: codetalkio/expose-tunnel@v1.5.0
+      id: expose-tunnel
+      with:
+        service: bore.pub
+        port: 8080
 
-    # Step 6: Start ngrok to expose the Spring Boot app on port 8080
-    - name: Expose Application with ngrok
-      run: |
-        nohup ngrok http 8080 > /dev/null 2>&1 &
-        sleep 10
-        curl http://localhost:4040/api/tunnels > ngrok_response.json
-        echo "ngrok is now exposing your application"
+    - name: Accessing the tunnel url
+      run: echo "Tunnel has been started at '${{ steps.expose-tunnel.outputs.tunnel-url }}'"
 
-    # Step 7: Display the public URL from ngrok
-    - name: Get ngrok URL
-      run: |
-        cat ngrok_response.json
-        PUBLIC_URL=$(cat ngrok_response.json | jq -r '.tunnels[0].public_url')
-        echo "Your application is now publicly accessible at: $PUBLIC_URL"
-        echo "::set-output name=NGROK_URL::$PUBLIC_URL"
+    - name: Keep tunnel alive for a defined time
+      run: timeout 1m sleep 40 # Stop on whichever we reach first (1m or 40s sleep).
+    # # Step 5: Install ngrok
+    # - name: Download and Install ngrok
+    #   run: |
+    #     curl -s https://ngrok-agent.s3.amazonaws.com/ngrok.asc | sudo tee /etc/apt/trusted.gpg.d/ngrok.asc >/dev/null &&
+    #     echo "deb https://ngrok-agent.s3.amazonaws.com buster main" | sudo tee /etc/apt/sources.list.d/ngrok.list &&
+    #     sudo apt update && sudo apt install ngrok
+
+    # # Step 6: Start ngrok to expose the Spring Boot app on port 8080
+    # - name: Expose Application with ngrok
+    #   run: |
+    #     nohup ngrok http 8080 > /dev/null 2>&1 &
+    #     sleep 10
+    #     curl http://localhost:4040/api/tunnels > ngrok_response.json
+    #     echo "ngrok is now exposing your application"
+
+    # # Step 7: Display the public URL from ngrok
+    # - name: Get ngrok URL
+    #   run: |
+    #     cat ngrok_response.json
+    #     PUBLIC_URL=$(cat ngrok_response.json | jq -r '.tunnels[0].public_url')
+    #     echo "Your application is now publicly accessible at: $PUBLIC_URL"
+    #     echo "::set-output name=NGROK_URL::$PUBLIC_URL"
