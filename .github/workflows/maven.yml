@@ -68,7 +68,7 @@ jobs:
       run: |
         nohup ngrok http 8080 > /dev/null 2>&1 &
         sleep 10
-        curl http://127.0.0.1:4040/api/tunnels > ngrok_response.json
+        curl http://localhost:4040/api/tunnels > ngrok_response.json
         echo "ngrok is now exposing your application"
 
     # Step 7: Display the public URL from ngrok
