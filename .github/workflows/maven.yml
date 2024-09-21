@@ -51,15 +51,27 @@ jobs:
 
     # Step 7: Test the application is running and accessible
     - name: Test Application
-      run: curl --fail http://localhost:8080 || exit 1
+      run: curl --fail http://localhost:8080/get-todo || exit 1
 
-    # Step 8: Expose the application URL via ngrok (optional step)
-    - name: Expose Application using ngrok
-      uses: actions/checkout@v3
+    # Step 5: Install ngrok
+    - name: Download and Install ngrok
       run: |
-        curl https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-linux-amd64.zip -o ngrok.zip
-        unzip ngrok.zip
-        ./ngrok http 8080 &
-        echo "ngrok is starting..."
+        curl -s https://ngrok-agent.s3.amazonaws.com/ngrok.asc | sudo tee /etc/apt/trusted.gpg.d/ngrok.asc >/dev/null &&
+        echo "deb https://ngrok-agent.s3.amazonaws.com buster main" | sudo tee /etc/apt/sources.list.d/ngrok.list &&
+        sudo apt update && sudo apt install ngrok
+
+    # Step 6: Start ngrok to expose the Spring Boot app on port 8080
+    - name: Expose Application with ngrok
+      run: |
+        nohup ngrok http 8080 > /dev/null 2>&1 &
         sleep 10
-        curl http://127.0.0.1:4040/api/tunnels
+        curl http://127.0.0.1:4040/api/tunnels > ngrok_response.json
+        echo "ngrok is now exposing your application"
+
+    # Step 7: Display the public URL from ngrok
+    - name: Get ngrok URL
+      run: |
+        cat ngrok_response.json
+        PUBLIC_URL=$(cat ngrok_response.json | jq -r '.tunnels[0].public_url')
+        echo "Your application is now publicly accessible at: $PUBLIC_URL"
+        echo "::set-output name=NGROK_URL::$PUBLIC_URL"
