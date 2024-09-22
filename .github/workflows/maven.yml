@@ -47,7 +47,8 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: todo-jar
-        path: ./target/*.jar
+        path: ./todo-list/target/*.jar
+        if-no-files-found: error
         
   Deploy-Application:
     runs-on: ubuntu-latest
