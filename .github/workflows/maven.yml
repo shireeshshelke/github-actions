@@ -61,7 +61,10 @@ jobs:
         distribution: 'temurin'
         java-version: '21'
     - name: Extract Artifact
-      run: unzip ./app/todo-files.zip
+      run: |
+        ls -l
+        ls -l ./app
+        unzip ./app/todo-files.zip
       
     # Step 5: Run the Spring Boot application
     - name: Run Spring Boot Application
