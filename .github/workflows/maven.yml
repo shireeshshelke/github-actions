@@ -60,16 +60,13 @@ jobs:
       with:
         distribution: 'temurin'
         java-version: '21'
-    - name: Extract Artifact
-      run: |
-        ls -l
-        ls -l ./app
-        unzip ./app/todo-files.zip
+    # - name: Extract Artifact
+    #   run: unzip ./app/todo-files.zip
       
     # Step 5: Run the Spring Boot application
     - name: Run Spring Boot Application
       run: |
-        java -jar ./app/*.jar &
+        java -jar ./app/target/*.jar &
         echo "Spring Boot application is starting..."
 
     # Step 6: Wait for Spring Boot to start (Adjust the time as needed)
@@ -87,7 +84,7 @@ jobs:
     - name: Download build artifact
       uses: actions/download-artifact@v4
       with:
-        name: todo-jar
+        name: todo-files
         path: ./app
         
     - name: Build Docker Image
